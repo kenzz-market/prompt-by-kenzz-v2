@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0b14">
+  <meta name="description" content="Prompt by Kenzz — koleksi prompt dan prompt generator gratis.">
+  <title>Prompt by Kenzz — Prompt Studio</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="Prompt by Kenzz beranda"><span class="brand-mark">K<span>✦</span></span><span>prompt <b>by kenzz</b><small>YOUR CREATIVE PROMPT STUDIO</small></span></a>
+    <button class="menu-toggle" id="menuToggle" aria-label="Buka menu">☰</button>
+    <nav id="mainNav">
+      <a href="#library">Prompt Library</a><a href="#generator">Generator</a><a href="#myPrompts">Prompt Saya</a>
+      <button class="button button-quiet" id="loginOpen">Login</button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="eyebrow"><span class="pulse"></span> CREATIVE PROMPT STUDIO <span class="eyebrow-line"></span> FREE FOREVER</div>
+      <h1>Ide hebat dimulai dari<br><span class="gradient-text">prompt yang tepat.</span></h1>
+      <p class="hero-copy">Temukan, buat, simpan, dan kelola prompt kreatifmu dalam satu tempat.</p>
+      <div class="hero-actions"><a class="button button-primary" href="#generator">✦ Buat Prompt <span>↗</span></a><a class="button button-secondary" href="#library">Jelajahi koleksi</a></div>
+      <div class="hero-stats"><div><b id="statPrompts">12</b><span>PROMPT PILIHAN</span></div><i></i><div><b>08</b><span>KATEGORI</span></div><i></i><div><b>100%</b><span>GRATIS</span></div></div>
+      <div class="hero-orb orb-a"></div><div class="hero-orb orb-b"></div>
+    </section>
+
+    <section class="section" id="library">
+      <div class="section-heading"><div><div class="eyebrow">DISCOVER & CREATE</div><h2>Prompt <span class="gradient-text">Library</span></h2><p>Inspirasi siap pakai untuk proyek berikutnya.</p></div><span class="pill"><span class="pulse"></span> <span id="resultCount">12</span> prompts</span></div>
+      <div class="toolbar"><label class="search-box"><span>⌕</span><input id="searchInput" type="search" placeholder="Cari prompt, gaya, atau kata kunci..." aria-label="Cari prompt"></label><select id="categoryFilter" aria-label="Filter kategori"><option value="Semua">Semua kategori</option></select><button class="button button-secondary" id="favoritesOnly">♡ Favorit</button></div>
+      <div class="chips" id="categoryChips"></div>
+      <div class="prompt-grid" id="promptGrid"></div>
+      <div class="empty-state hidden" id="emptyLibrary"><div>✧</div><h3>Belum ada prompt ditemukan</h3><p>Coba kata kunci atau kategori lain.</p></div>
+    </section>
+
+    <section class="section generator-section" id="generator">
+      <div class="section-heading"><div><div class="eyebrow">BUILD YOUR NEXT IDEA</div><h2>Prompt <span class="gradient-text">Generator</span></h2><p>Isi beberapa detail, lalu buat prompt terstruktur tanpa API.</p></div><span class="pill">LOCAL · FREE</span></div>
+      <div class="generator-layout">
+        <form class="panel generator-form" id="generatorForm">
+          <div class="panel-title"><span class="panel-icon">✦</span><div><h3>Rancang prompt</h3><p>Sesuaikan dengan kebutuhanmu.</p></div></div>
+          <label>Jenis prompt<select id="genCategory"><option>Gambar AI</option><option>Anime</option><option>Website</option><option>Coding</option><option>Banner & Desain</option><option>Menulis</option><option>Video</option><option>Bisnis</option></select></label>
+          <label>Subjek utama<input id="genSubject" required placeholder="Contoh: karakter anime di bawah hujan"></label>
+          <div class="form-row"><label>Gaya visual / penulisan<select id="genStyle"><option>Premium cinematic</option><option>Anime aesthetic</option><option>Photorealistic</option><option>Minimalist</option><option>Cyberpunk neon</option><option>Editorial professional</option><option>Soft pastel</option><option>Custom / fleksibel</option></select></label><label>Detail<select id="genDetail"><option>Sangat detail</option><option>Seimbang</option><option>Ringkas</option></select></label></div>
+          <label>Suasana atau tujuan<input id="genMood" placeholder="Contoh: elegan, misterius, profesional"></label>
+          <label>Detail tambahan<textarea id="genExtra" rows="3" placeholder="Warna, komposisi, pencahayaan, rasio, target audiens..."></textarea></label>
+          <button class="button button-primary full" type="submit">✦ Generate Prompt <span>↗</span></button>
+          <p class="fine-print">Generator ini bekerja langsung di browser. Tidak menggunakan API AI eksternal.</p>
+        </form>
+        <div class="panel output-panel">
+          <div class="output-top"><div><div class="eyebrow">YOUR GENERATED PROMPT</div><h3>Hasil prompt</h3></div><span class="live-tag"><span class="pulse"></span> READY</span></div>
+          <div class="output-placeholder" id="outputPlaceholder"><div class="placeholder-art">✧</div><h3>Prompt-mu akan muncul di sini</h3><p>Lengkapi formulir lalu tekan Generate Prompt.</p></div>
+          <div class="output-content hidden" id="outputContent"><div class="output-meta"><span id="outputCategory">Gambar AI</span><span id="outputWords">0 kata</span></div><textarea id="generatedPrompt" rows="13" aria-label="Hasil prompt"></textarea><div class="output-actions"><button class="button button-primary" id="copyGenerated">▣ Salin prompt</button><button class="button button-secondary" id="saveGenerated">♡ Simpan</button><button class="button button-quiet" id="downloadGenerated">↓ .txt</button></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section personal-section" id="myPrompts">
+      <div class="section-heading"><div><div class="eyebrow">YOUR PERSONAL SPACE</div><h2>Prompt <span class="gradient-text">Saya</span></h2><p>Prompt buatanmu tersimpan di browser perangkat ini.</p></div><button class="button button-secondary" id="addPromptOpen">＋ Tambah prompt</button></div>
+      <div class="personal-grid">
+        <div class="panel personal-card"><div class="panel-title"><span class="panel-icon">♡</span><div><h3>Prompt favorit</h3><p>Kumpulan prompt yang kamu tandai.</p></div></div><div id="favoriteList" class="compact-list"><p class="muted">Belum ada favorit. Tekan ikon ♡ pada kartu prompt.</p></div></div>
+        <div class="panel personal-card"><div class="panel-title"><span class="panel-icon">✎</span><div><h3>Prompt buatan sendiri</h3><p>Tambah prompt untuk koleksi pribadimu.</p></div></div><div id="userPromptList" class="compact-list"><p class="muted">Belum ada prompt buatanmu.</p></div></div>
+      </div>
+    </section>
+
+    <section class="section admin-section" id="admin">
+      <div class="section-heading"><div><div class="eyebrow">MANAGE YOUR COLLECTION</div><h2>Admin <span class="gradient-text">Studio</span></h2><p>Kelola prompt lokal, ekspor cadangan, atau impor data.</p></div><span class="pill">LOCAL ADMIN</span></div>
+      <div class="panel admin-panel"><div class="admin-notice">ⓘ <span><b>Catatan penting:</b> versi GitHub Pages ini adalah website statis. Login demo dan data tersimpan di browser, bukan sistem akun aman. Jangan gunakan untuk menyimpan password atau data rahasia.</span></div><div class="admin-actions"><button class="button button-secondary" id="exportData">↓ Ekspor backup JSON</button><label class="button button-secondary upload-button">↑ Impor backup JSON<input type="file" id="importData" accept=".json,application/json" hidden></label><button class="button button-quiet danger-text" id="clearUserData">Hapus data lokal</button></div><div class="admin-login-row"><span id="adminStatus">Mode pengunjung · login demo tersedia</span><button class="button button-primary" id="adminLogin">Login admin demo</button></div></div>
+    </section>
+  </main>
+
+  <footer><a class="brand footer-brand" href="#"><span class="brand-mark">K<span>✦</span></span><span>prompt <b>by kenzz</b><small>YOUR CREATIVE PROMPT STUDIO</small></span></a><p>Made for creators, by Kenzz. <span>✦</span></p><span class="footer-note">HTML · CSS · JAVASCRIPT · NO API</span></footer>
+
+  <div class="modal-backdrop hidden" id="loginModal" role="dialog" aria-modal="true" aria-labelledby="loginTitle"><div class="modal panel"><button class="modal-close" data-close="loginModal" aria-label="Tutup">×</button><div class="panel-icon big-icon">♙</div><div class="eyebrow">WELCOME BACK</div><h2 id="loginTitle">Login <span class="gradient-text">Studio</span></h2><p class="muted">Login demo untuk personalisasi tampilan di browser ini.</p><form id="loginForm"><label>Nama pengguna<input id="loginName" required placeholder="Masukkan nama pengguna"></label><label>Mode login<select id="loginRole"><option value="user">Pengguna</option><option value="admin">Admin demo</option></select></label><button class="button button-primary full" type="submit">Masuk ke studio ↗</button></form><p class="fine-print">Ini bukan autentikasi sungguhan. Tidak ada password yang diminta atau diverifikasi.</p></div></div>
+
+  <div class="modal-backdrop hidden" id="addPromptModal" role="dialog" aria-modal="true" aria-labelledby="addPromptTitle"><div class="modal panel"><button class="modal-close" data-close="addPromptModal" aria-label="Tutup">×</button><div class="eyebrow">ADD TO YOUR LIBRARY</div><h2 id="addPromptTitle">Tambah <span class="gradient-text">prompt</span></h2><form id="addPromptForm"><label>Judul prompt<input id="customTitle" required placeholder="Contoh: Neon Anime Portrait"></label><label>Kategori<select id="customCategory"><option>Gambar AI</option><option>Anime</option><option>Website</option><option>Coding</option><option>Banner & Desain</option><option>Menulis</option><option>Video</option><option>Bisnis</option></select></label><label>Isi prompt<textarea id="customText" required rows="5" placeholder="Tulis prompt lengkapmu..."></textarea></label><button class="button button-primary full" type="submit">Simpan prompt</button></form></div></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="script.js"></script>
+</body>
+</html>
