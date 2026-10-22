@@ -1,41 +1,32 @@
-# Prompt by Kenzz
+# Prompt by Kenzz — Supabase version
 
-Website prompt library dan generator statis menggunakan HTML, CSS, dan JavaScript. Tidak memerlukan API atau proses build.
+## File project (semua harus berada di root repository)
+- `index.html`
+- `style.css`
+- `script.js`
+- `supabase-config.js`
+- `supabase-auth-trigger.sql`
+- `README.md`
 
-## Struktur file
+## Yang sudah disambungkan
+- Login email/password dan pendaftaran melalui Supabase Auth.
+- Prompt pribadi baru disimpan ke tabel `public.prompts` setelah pengguna login.
+- Prompt cloud milik pengguna dimuat saat login dan dapat dihapus oleh pemiliknya.
+- Koleksi prompt bawaan dan generator tanpa AI API tetap tersedia.
+- Publishable key digunakan pada frontend; tidak ada secret key dalam project.
 
-```text
-prompt-by-kenzz/
-├── index.html
-├── style.css
-├── script.js
-└── README.md
-```
+## Yang harus dilakukan sekali di Supabase
+1. Pastikan SQL schema awal yang membuat `profiles`, `prompts`, `prompt_favorites` dan RLS sudah berhasil dijalankan.
+2. Buka SQL Editor dan jalankan isi `supabase-auth-trigger.sql` agar akun baru otomatis memiliki profil.
+3. Buka Authentication → URL Configuration. Set Site URL ke URL GitHub Pages kamu dan tambahkan URL itu ke Redirect URLs. Contoh: `https://USERNAME.github.io/prompt-by-kenzz-v2/`.
+4. Buka Authentication → Providers → Email. Tentukan apakah konfirmasi email diaktifkan. Jika aktif, konfirmasi email saat mendaftar.
+5. Di Settings → API Keys, pastikan `supabase-config.js` berisi Project URL dan publishable key yang benar.
 
-## Fitur
-- Koleksi prompt bawaan dan pencarian
-- Filter kategori dan favorit
-- Salin prompt
-- Prompt generator lokal tanpa API
-- Simpan prompt sendiri dan ekspor/impor backup JSON
-- Login demo tanpa password
-- Panel pengelolaan data lokal
+## Upload lewat Android
+Upload/commit keenam file ini langsung ke root repository GitHub yang dipakai untuk website, bukan ZIP dan bukan folder bersarang. Jika diminta, pilih Replace untuk file lama dengan nama yang sama. Tunggu GitHub Pages selesai deploy lalu refresh website.
 
-## Penting soal login dan penyimpanan
-GitHub Pages hanya meng-host file statis. Login pada versi ini hanya demo untuk personalisasi tampilan di browser, bukan autentikasi aman. Prompt buatan sendiri, favorit, dan sesi disimpan di `localStorage` browser/perangkat yang digunakan. Data tidak otomatis sinkron antarperangkat. Jangan menyimpan data rahasia. Untuk login sungguhan, sinkronisasi cloud, dan admin multi-pengguna diperlukan backend atau layanan autentikasi/database.
-
-## Cara upload lewat HP Android
-1. Ekstrak ZIP ini jika kamu mengunduh versi ZIP.
-2. Buka GitHub di browser dan login ke akunmu.
-3. Buat repository baru, misalnya `prompt-by-kenzz`.
-4. Pilih **Public** (agar bisa dipublikasikan gratis lewat GitHub Pages) dan buat repository.
-5. Di repository, tekan **Add file → Upload files**.
-6. Upload `index.html`, `style.css`, `script.js`, dan `README.md` langsung ke root repository. Jangan upload ZIP sebagai pengganti file project.
-7. Tekan **Commit changes**.
-8. Buka **Settings → Pages**.
-9. Pada **Build and deployment**, pilih **Deploy from a branch**; branch `main`, folder `/(root)`, lalu tekan **Save**.
-10. Tunggu deployment selesai. Alamat situs biasanya `https://USERNAME.github.io/prompt-by-kenzz/`.
-11. Jika belum muncul, tunggu beberapa menit lalu refresh. Pastikan `index.html` berada di root.
-
-## Penggunaan
-Buka `index.html` melalui website yang di-host untuk pengalaman terbaik. Generator membuat template prompt berdasarkan isian; karena tanpa API, ia tidak memanggil model AI eksternal.
+## Batasan saat ini
+- Favorit prompt bawaan disimpan lokal. Favorit online saat ini hanya didukung untuk prompt database milik pengguna.
+- Panel admin tidak menyediakan hak admin otomatis. Peran admin harus ditetapkan dan dibatasi secara manual di database sebelum membuat fungsi admin sensitif.
+- Prompt buatan pengguna disimpan private (`is_public=false`). RLS dari schema awal wajib tetap aktif.
+- Jangan pernah memasukkan `sb_secret_...`, `service_role`, atau password database ke file frontend. Publishable key boleh terlihat di browser, tetapi RLS tetap wajib.

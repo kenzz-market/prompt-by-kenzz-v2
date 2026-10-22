@@ -19,19 +19,33 @@ const store = {
  get(key, fallback){try{const v=localStorage.getItem("kenzz_"+key);return v?JSON.parse(v):fallback}catch{return fallback}},
  set(key,val){try{localStorage.setItem("kenzz_"+key,JSON.stringify(val))}catch{toast("Penyimpanan browser penuh. Ekspor backup atau hapus data lama.")}}
 };
-let userPrompts=store.get("userPrompts",[]), favorites=store.get("favorites",[]), userSession=store.get("session",null), showFavorites=false, generatedText="";
+let userPrompts=store.get("userPrompts",[]), favorites=store.get("favorites",[]), userSession=null, showFavorites=false, generatedText="";
+let supabaseClient=null;
+const cfg=window.KENZZ_SUPABASE_CONFIG||{};
+if(window.supabase && cfg.url && cfg.publishableKey && !cfg.url.includes("PASTE_") && !cfg.publishableKey.includes("PASTE_")) supabaseClient=window.supabase.createClient(cfg.url,cfg.publishableKey);
 const allPrompts=()=>[...seedPrompts,...userPrompts];
 function escapeHTML(s=""){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function toast(message){const el=$("#toast");el.textContent=message;el.classList.add("show");clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.classList.remove("show"),2300)}
 function saveUserData(){store.set("userPrompts",userPrompts);store.set("favorites",favorites)}
 function populateCategories(){const sel=$("#categoryFilter");CATEGORIES.forEach(c=>{const o=document.createElement("option");o.value=c;o.textContent=c;sel.appendChild(o)});$("#categoryChips").innerHTML=["Semua",...CATEGORIES].map(c=>`<button class="chip ${c==="Semua"?"active":""}" data-cat="${escapeHTML(c)}">${escapeHTML(c)}</button>`).join("")}
 function renderPrompts(){const query=$("#searchInput").value.toLowerCase().trim(),cat=$("#categoryFilter").value;const filtered=allPrompts().filter(p=>(cat==="Semua"||p.category===cat)&&(!showFavorites||favorites.includes(p.id))&&[p.title,p.description,p.prompt,p.category].join(" ").toLowerCase().includes(query));$("#promptGrid").innerHTML=filtered.map(p=>`<article class="prompt-card"><div class="card-top"><span class="category-tag">${escapeHTML(p.category)}</span><button class="favorite-button ${favorites.includes(p.id)?"is-favorite":""}" data-fav="${escapeHTML(p.id)}" aria-label="Toggle favorit">${favorites.includes(p.id)?"♥":"♡"}</button></div><div class="card-icon">${escapeHTML(p.icon||"✦")}</div><h3>${escapeHTML(p.title)}</h3><p>${escapeHTML(p.description||p.prompt)}</p><div class="card-footer"><span>${p.prompt.trim().split(/\s+/).length} kata · prompt</span><button class="copy-button" data-copy="${escapeHTML(p.id)}">▣ Salin prompt</button></div></article>`).join("");$("#resultCount").textContent=filtered.length;$("#statPrompts").textContent=allPrompts().length;$("#emptyLibrary").classList.toggle("hidden",filtered.length>0);$("#promptGrid").classList.toggle("hidden",filtered.length===0);$$(".chip").forEach(b=>b.classList.toggle("active",b.dataset.cat===cat));if(cat==="Semua")$$(".chip").forEach(b=>b.classList.toggle("active",b.dataset.cat==="Semua"));else $$(".chip").forEach(b=>b.classList.toggle("active",b.dataset.cat===cat))}
-function renderPersonal(){const favs=allPrompts().filter(p=>favorites.includes(p.id));$("#favoriteList").innerHTML=favs.length?favs.map(p=>compactItem(p,"favorite")).join(""):'<p class="muted">Belum ada favorit. Tekan ikon ♡ pada kartu prompt.</p>';$("#userPromptList").innerHTML=userPrompts.length?userPrompts.map(p=>compactItem(p,"user")).join(""):'<p class="muted">Belum ada prompt buatanmu.</p>';$("#adminStatus").textContent=userSession?`Masuk sebagai ${userSession.name} · ${userSession.role==="admin"?"Admin demo":"Pengguna"}`:"Mode pengunjung · login demo tersedia";$("#loginOpen").textContent=userSession?userSession.name:"Login";$("#adminLogin").textContent=userSession?.role==="admin"?"Keluar dari mode admin":"Login admin demo"}
+function renderPersonal(){const favs=allPrompts().filter(p=>favorites.includes(p.id));$("#favoriteList").innerHTML=favs.length?favs.map(p=>compactItem(p,"favorite")).join(""):'<p class="muted">Belum ada favorit. Tekan ikon ♡ pada kartu prompt.</p>';$("#userPromptList").innerHTML=userPrompts.length?userPrompts.map(p=>compactItem(p,"user")).join(""):'<p class="muted">Belum ada prompt buatanmu.</p>';$("#adminStatus").textContent=userSession?`Login sebagai ${userSession.email}`:(supabaseClient?"Supabase terhubung · belum login":"Supabase belum dikonfigurasi");$("#loginOpen").textContent=userSession?userSession.email.split("@")[0]:"Login";$("#adminLogin").textContent="Status akun"}
 function compactItem(p,type){return `<div class="compact-item"><div><strong>${escapeHTML(p.title)}</strong><small>${escapeHTML(p.category)}</small></div><button data-openprompt="${escapeHTML(p.id)}">Lihat ↗</button>${type==="user"?`<button data-deleteprompt="${escapeHTML(p.id)}" aria-label="Hapus prompt">×</button>`:""}</div>`}
 async function copyText(text){try{await navigator.clipboard.writeText(text);toast("Prompt berhasil disalin!")}catch{const ta=document.createElement("textarea");ta.value=text;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");toast("Prompt berhasil disalin!")}catch{toast("Tidak bisa menyalin otomatis. Pilih teks dan salin manual.")}ta.remove()}}
 function openModal(id){$("#"+id).classList.remove("hidden")}
 function closeModal(id){$("#"+id).classList.add("hidden")}
-function addUserPrompt(title,category,prompt){userPrompts.unshift({id:"u"+Date.now().toString(36),title,category,prompt,description:prompt.slice(0,130),icon:"✎",createdAt:new Date().toISOString()});saveUserData();renderPrompts();renderPersonal()}
+async function addUserPrompt(title,category,prompt){
+  if(supabaseClient&&userSession){
+    const {data,error}=await supabaseClient.from("prompts").insert({user_id:userSession.id,title,category,content:prompt,description:prompt.slice(0,130),is_public:false}).select().single();
+    if(error){toast("Gagal menyimpan ke Supabase: "+error.message);return}
+    userPrompts.unshift({id:"cloud_"+data.id,cloudId:data.id,title,category,prompt,description:prompt.slice(0,130),icon:"✎"});
+    toast("Prompt tersimpan online.");
+  }else{
+    userPrompts.unshift({id:"u"+Date.now().toString(36),title,category,prompt,description:prompt.slice(0,130),icon:"✎",createdAt:new Date().toISOString()});
+    toast("Disimpan lokal. Login untuk menyimpan online.");
+  }
+  saveUserData();renderPrompts();renderPersonal();
+}
 function makePrompt(){const category=$("#genCategory").value,subject=$("#genSubject").value.trim(),style=$("#genStyle").value,detail=$("#genDetail").value,mood=$("#genMood").value.trim(),extra=$("#genExtra").value.trim();if(!subject){$("#genSubject").focus();toast("Isi subjek utama terlebih dahulu.");return}const detailText=detail==="Sangat detail"?"Include rich detail, deliberate composition, coherent visual hierarchy, polished execution, and carefully considered finishing touches.":detail==="Ringkas"?"Keep the result concise, clear, and focused on the most important details.":"Balance useful detail with clarity and a clean result.";generatedText=`Create a ${style.toLowerCase()} ${category.toLowerCase()} based on: ${subject}.\n${mood?`Mood or objective: ${mood}.\n`:""}${extra?`Additional requirements: ${extra}.\n`:""}${detailText}\nMake the result cohesive, high quality, purposeful, and suitable for its intended use. Avoid unnecessary clutter, low-quality details, and unintended artifacts.`;$("#outputCategory").textContent=category;$("#outputWords").textContent=generatedText.trim().split(/\s+/).length+" kata";$("#generatedPrompt").value=generatedText;$("#outputPlaceholder").classList.add("hidden");$("#outputContent").classList.remove("hidden");toast("Prompt berhasil dibuat.")}
 function downloadText(filename,text){const blob=new Blob([text],{type:"text/plain;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url)}
 function exportData(){const data={app:"Prompt by Kenzz",version:1,exportedAt:new Date().toISOString(),userPrompts,favorites};const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="prompt-by-kenzz-backup.json";a.click();URL.revokeObjectURL(url);toast("Backup JSON siap diunduh.")}
@@ -47,13 +61,50 @@ $("#downloadGenerated").addEventListener("click",()=>{if(!generatedText){toast("
 $("#addPromptOpen").addEventListener("click",()=>openModal("addPromptModal"));
 $("#addPromptForm").addEventListener("submit",e=>{e.preventDefault();addUserPrompt($("#customTitle").value.trim(),$("#customCategory").value,$("#customText").value.trim());e.target.reset();closeModal("addPromptModal");toast("Prompt buatanmu berhasil disimpan.")});
 $("#loginOpen").addEventListener("click",()=>openModal("loginModal"));
-$("#loginForm").addEventListener("submit",e=>{e.preventDefault();userSession={name:$("#loginName").value.trim(),role:$("#loginRole").value};store.set("session",userSession);renderPersonal();closeModal("loginModal");toast(`Selamat datang, ${userSession.name}!`)});
-$("#adminLogin").addEventListener("click",()=>{if(userSession?.role==="admin"){userSession=null;store.set("session",null);renderPersonal();toast("Keluar dari mode admin.");return}$("#loginRole").value="admin";openModal("loginModal")});
+async function refreshAuth(){
+  if(!supabaseClient){userSession=null;renderPersonal();return}
+  const {data:{session},error}=await supabaseClient.auth.getSession();
+  if(error){toast("Gagal membaca sesi: "+error.message);return}
+  userSession=session?.user?{id:session.user.id,email:session.user.email}:null;
+  renderPersonal();
+  if(userSession){await loadCloudPrompts();await loadCloudFavorites();}
+}
+async function loadCloudPrompts(){
+  if(!supabaseClient||!userSession)return;
+  const {data,error}=await supabaseClient.from("prompts").select("id,title,category,content,description,created_at").eq("user_id",userSession.id).order("created_at",{ascending:false});
+  if(error){toast("Gagal memuat prompt online: "+error.message);return}
+  const cloud=(data||[]).map(p=>({id:"cloud_"+p.id,cloudId:p.id,title:p.title,category:p.category,prompt:p.content,description:p.description||p.content.slice(0,130),icon:"✎"}));
+  userPrompts=[...cloud,...userPrompts.filter(p=>!String(p.id).startsWith("cloud_"))];renderPrompts();renderPersonal();
+}
+async function loadCloudFavorites(){
+  if(!supabaseClient||!userSession)return;
+  const {data,error}=await supabaseClient.from("prompt_favorites").select("prompt_id").eq("user_id",userSession.id);
+  if(!error){favorites=data.map(x=>"cloud_"+x.prompt_id);store.set("favorites",favorites);renderPrompts();renderPersonal();}
+}
+async function signIn(){
+  if(!supabaseClient){toast("Periksa supabase-config.js dan pastikan URL/key terisi.");return}
+  const {data,error}=await supabaseClient.auth.signInWithPassword({email:$("#loginEmail").value.trim(),password:$("#loginPassword").value});
+  if(error){toast(error.message);return}
+  userSession={id:data.user.id,email:data.user.email};closeModal("loginModal");await refreshAuth();toast("Berhasil login.");
+}
+async function signUp(){
+  if(!supabaseClient){toast("Periksa supabase-config.js dan pastikan URL/key terisi.");return}
+  const {data,error}=await supabaseClient.auth.signUp({email:$("#loginEmail").value.trim(),password:$("#loginPassword").value,options:{data:{display_name:$("#loginName").value.trim()||"Creator"}}});
+  if(error){toast(error.message);return}
+  if(data.session){closeModal("loginModal");await refreshAuth();toast("Akun berhasil dibuat.");}
+  else toast("Akun dibuat. Periksa email konfirmasi, lalu login.");
+}
+$("#loginForm").addEventListener("submit",e=>{e.preventDefault();signIn();});
+$("#signupSubmit").addEventListener("click",signUp);
+$("#logoutButton").addEventListener("click",async()=>{if(!supabaseClient){closeModal("loginModal");return}const {error}=await supabaseClient.auth.signOut();if(error){toast(error.message);return}userSession=null;closeModal("loginModal");renderPersonal();toast("Berhasil keluar.");});
+$("#adminLogin").addEventListener("click",()=>toast("Hak admin harus ditetapkan manual di database; login biasa tidak memberi hak admin."));
 $$("[data-close]").forEach(b=>b.addEventListener("click",()=>closeModal(b.dataset.close)));
 $$(".modal-backdrop").forEach(bg=>bg.addEventListener("click",e=>{if(e.target===bg)closeModal(bg.id)}));
 $("#exportData").addEventListener("click",exportData);
 $("#importData").addEventListener("change",async e=>{const file=e.target.files[0];if(!file)return;try{const data=JSON.parse(await file.text());if(!Array.isArray(data.userPrompts)||!Array.isArray(data.favorites))throw new Error("Format backup tidak cocok");userPrompts=data.userPrompts.filter(p=>p&&p.id&&p.title&&p.prompt);favorites=data.favorites.filter(id=>typeof id==="string");saveUserData();renderPrompts();renderPersonal();toast("Backup berhasil diimpor.")}catch(err){toast("File backup tidak valid atau rusak.")}e.target.value=""});
 $("#clearUserData").addEventListener("click",()=>{if(!confirm("Hapus prompt buatan sendiri, favorit, dan sesi login dari browser ini? Prompt bawaan tidak akan dihapus."))return;userPrompts=[];favorites=[];userSession=null;saveUserData();store.set("session",null);renderPrompts();renderPersonal();toast("Data lokal sudah dihapus.")});
-document.addEventListener("click",e=>{const open=e.target.closest("[data-openprompt]"),del=e.target.closest("[data-deleteprompt]");if(open){const p=allPrompts().find(x=>x.id===open.dataset.openprompt);if(p){$("#genCategory").value=p.category;$("#genSubject").value=p.title;$("#generatedPrompt").value=p.prompt;generatedText=p.prompt;$("#outputCategory").textContent=p.category;$("#outputWords").textContent=p.prompt.trim().split(/\s+/).length+" kata";$("#outputPlaceholder").classList.add("hidden");$("#outputContent").classList.remove("hidden");$("#generator").scrollIntoView({behavior:"smooth"})}}if(del){if(!confirm("Hapus prompt ini dari koleksi pribadi?"))return;userPrompts=userPrompts.filter(p=>p.id!==del.dataset.deleteprompt);favorites=favorites.filter(id=>id!==del.dataset.deleteprompt);saveUserData();renderPrompts();renderPersonal();toast("Prompt dihapus.")}});
+document.addEventListener("click",async e=>{const open=e.target.closest("[data-openprompt]"),del=e.target.closest("[data-deleteprompt]");if(open){const p=allPrompts().find(x=>x.id===open.dataset.openprompt);if(p){$("#genCategory").value=p.category;$("#genSubject").value=p.title;$("#generatedPrompt").value=p.prompt;generatedText=p.prompt;$("#outputCategory").textContent=p.category;$("#outputWords").textContent=p.prompt.trim().split(/\s+/).length+" kata";$("#outputPlaceholder").classList.add("hidden");$("#outputContent").classList.remove("hidden");$("#generator").scrollIntoView({behavior:"smooth"})}}if(del){if(!confirm("Hapus prompt ini dari koleksi pribadi?"))return;const target=userPrompts.find(p=>p.id===del.dataset.deleteprompt);if(target?.cloudId&&supabaseClient&&userSession){const {error}=await supabaseClient.from("prompts").delete().eq("id",target.cloudId).eq("user_id",userSession.id);if(error){toast("Gagal menghapus: "+error.message);return}}userPrompts=userPrompts.filter(p=>p.id!==del.dataset.deleteprompt);favorites=favorites.filter(id=>id!==del.dataset.deleteprompt);saveUserData();renderPrompts();renderPersonal();toast("Prompt dihapus.")}});
 $("#menuToggle").addEventListener("click",()=>$("#mainNav").classList.toggle("open"));
 $("#mainNav").addEventListener("click",e=>{if(e.target.closest("a"))$("#mainNav").classList.remove("open")});
+
+refreshAuth();
