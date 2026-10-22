@@ -92,13 +92,20 @@ function setAiMode(mode){
 }
 async function invokeKenzzAI(mode,input,category="Umum",messages=[]){
   if(!supabaseClient){toast("Supabase belum dikonfigurasi. Periksa supabase-config.js.");return null}
-  const {data:{session}}=await supabaseClient.auth.getSession();
-  if(!session?.user){toast("Login atau buat akun terlebih dahulu untuk memakai AI.");openModal("loginModal");return null}
+  const {data:{session},error:sessionError}=await supabaseClient.auth.getSession();
+  if(sessionError || !session?.user || !session?.access_token){toast("Sesi login tidak ditemukan. Silakan login ulang di website.");openModal("loginModal");return null}
   $("#aiStatus").textContent="AI sedang memproses... Mohon tunggu.";
   $("#aiSubmit").disabled=true;
   try{
-    const {data,error}=await supabaseClient.functions.invoke("kenzz-ai",{body:{mode,input,category,messages}});
-    if(error)throw error;
+    // Send the actual signed-in access token explicitly. Never use the project URL as Authorization.
+    const response=await fetch(`${supaCfg.url}/functions/v1/kenzz-ai`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json","apikey":supaCfg.publishableKey,"Authorization":`Bearer ${session.access_token}`},
+      body:JSON.stringify({mode,input,category,messages})
+    });
+    let data={};
+    try{data=await response.json()}catch{}
+    if(!response.ok) throw new Error(data?.error || `Edge Function gagal (HTTP ${response.status}). Periksa secret GEMINI_API_KEY dan log fungsi.`);
     if(!data?.text)throw new Error(data?.error||"Respons AI kosong.");
     aiResultText=data.text;
     $("#aiResult").value=data.text;
@@ -107,8 +114,9 @@ async function invokeKenzzAI(mode,input,category="Umum",messages=[]){
     await saveAiHistory(mode,input,data.text,category);
     return data.text;
   }catch(err){
-    $("#aiStatus").textContent="AI belum siap: "+(err.message||"periksa Edge Function dan provider key.");
-    toast("AI gagal: "+(err.message||"periksa konfigurasi"));
+    const message=err?.message||"Periksa Edge Function dan secret Gemini.";
+    $("#aiStatus").textContent="AI belum siap: "+message;
+    toast("AI gagal: "+message);
     return null;
   }finally{$("#aiSubmit").disabled=false}
 }
