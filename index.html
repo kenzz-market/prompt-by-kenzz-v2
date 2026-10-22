@@ -14,7 +14,7 @@
     <a class="brand" href="#" aria-label="Prompt by Kenzz beranda"><span class="brand-mark">K<span>✦</span></span><span>prompt <b>by kenzz</b><small>YOUR CREATIVE PROMPT STUDIO</small></span></a>
     <button class="menu-toggle" id="menuToggle" aria-label="Buka menu">☰</button>
     <nav id="mainNav">
-      <a href="#library">Prompt Library</a><a href="#generator">Generator</a><a href="#myPrompts">Prompt Saya</a>
+      <a href="#library">Prompt Library</a><a href="#generator">Generator</a><a href="#aiStudio">AI Studio</a><a href="#myPrompts">Prompt Saya</a>
       <button class="button button-quiet" id="loginOpen">Login</button>
     </nav>
   </header>
@@ -58,6 +58,34 @@
       </div>
     </section>
 
+
+    <section class="section ai-section" id="aiStudio">
+      <div class="section-heading"><div><div class="eyebrow">REAL AI · SECURE EDGE FUNCTION</div><h2>KENZZ <span class="gradient-text">AI Studio</span></h2><p>Generate, enhance, dan diskusikan prompt dengan AI sungguhan.</p></div><span class="pill">AI POWERED</span></div>
+      <div class="ai-tabs" role="tablist">
+        <button class="ai-tab active" data-ai-mode="generate">✦ AI Generator</button>
+        <button class="ai-tab" data-ai-mode="enhance">↗ Prompt Enhancer</button>
+        <button class="ai-tab" data-ai-mode="chat">◉ AI Assistant</button>
+        <button class="ai-tab" data-ai-mode="history">◷ Riwayat</button>
+      </div>
+      <div class="ai-layout">
+        <div class="panel ai-form-panel">
+          <div class="panel-title"><span class="panel-icon">✧</span><div><h3 id="aiModeTitle">AI Prompt Generator</h3><p id="aiModeDesc">Ubah ide singkat menjadi prompt profesional.</p></div></div>
+          <label id="aiCategoryWrap">Kategori<select id="aiCategory"><option>Gambar AI</option><option>Anime</option><option>Website</option><option>Coding</option><option>Banner & Desain</option><option>Menulis</option><option>Video</option><option>Bisnis</option></select></label>
+          <label id="aiInputLabel">Ide kamu<textarea id="aiInput" rows="5" placeholder="Contoh: karakter anime di kota malam dengan neon ungu..."></textarea></label>
+          <div class="ai-status" id="aiStatus">Hubungkan Supabase Edge Function untuk mulai menggunakan AI.</div>
+          <button class="button button-primary full" id="aiSubmit">✦ Generate dengan AI</button>
+          <p class="fine-print">AI memerlukan Supabase Edge Function dan provider AI. Jangan masukkan API key ke frontend.</p>
+        </div>
+        <div class="panel ai-result-panel">
+          <div class="output-top"><div><div class="eyebrow">AI OUTPUT</div><h3 id="aiResultTitle">Hasil AI</h3></div><span class="live-tag"><span class="pulse"></span> SECURE</span></div>
+          <div id="aiResultEmpty" class="output-placeholder"><div class="placeholder-art">✧</div><h3>Hasil AI muncul di sini</h3><p>Tulis ide di panel kiri, lalu jalankan AI.</p></div>
+          <div id="aiResultWrap" class="hidden"><textarea id="aiResult" rows="14" aria-label="Hasil AI"></textarea><div class="output-actions"><button class="button button-primary" id="aiCopy">▣ Salin</button><button class="button button-secondary" id="aiSave">♡ Simpan ke Prompt Saya</button></div></div>
+          <div id="aiChatWrap" class="hidden"><div id="aiChatMessages" class="ai-chat-messages"></div><div class="ai-chat-compose"><textarea id="aiChatInput" rows="2" placeholder="Tulis pesan lanjutan..."></textarea><button class="button button-primary" id="aiChatSend">Kirim ↗</button></div></div>
+          <div id="aiHistoryWrap" class="hidden"><div id="aiHistoryList" class="compact-list"><p class="muted">Login untuk melihat riwayat AI.</p></div></div>
+        </div>
+      </div>
+    </section>
+
     <section class="section personal-section" id="myPrompts">
       <div class="section-heading"><div><div class="eyebrow">YOUR PERSONAL SPACE</div><h2>Prompt <span class="gradient-text">Saya</span></h2><p>Prompt buatanmu tersimpan di browser perangkat ini.</p></div><button class="button button-secondary" id="addPromptOpen">＋ Tambah prompt</button></div>
       <div class="personal-grid">
@@ -68,13 +96,13 @@
 
     <section class="section admin-section" id="admin">
       <div class="section-heading"><div><div class="eyebrow">MANAGE YOUR COLLECTION</div><h2>Admin <span class="gradient-text">Studio</span></h2><p>Kelola prompt lokal, ekspor cadangan, atau impor data.</p></div><span class="pill">LOCAL ADMIN</span></div>
-      <div class="panel admin-panel"><div class="admin-notice">ⓘ <span><b>Catatan penting:</b> versi GitHub Pages ini adalah website statis. Login menggunakan Supabase. Prompt yang kamu buat dapat disimpan online setelah login. Jangan gunakan untuk menyimpan password atau data rahasia.</span></div><div class="admin-actions"><button class="button button-secondary" id="exportData">↓ Ekspor backup JSON</button><label class="button button-secondary upload-button">↑ Impor backup JSON<input type="file" id="importData" accept=".json,application/json" hidden></label><button class="button button-quiet danger-text" id="clearUserData">Hapus data lokal</button></div><div class="admin-login-row"><span id="adminStatus">Mode pengunjung · login demo tersedia</span><button class="button button-primary" id="adminLogin">Login admin demo</button></div></div>
+      <div class="panel admin-panel"><div class="admin-notice">ⓘ <span><b>Catatan penting:</b> versi GitHub Pages ini adalah website statis. Login demo dan data tersimpan di browser, bukan sistem akun aman. Jangan gunakan untuk menyimpan password atau data rahasia.</span></div><div class="admin-actions"><button class="button button-secondary" id="exportData">↓ Ekspor backup JSON</button><label class="button button-secondary upload-button">↑ Impor backup JSON<input type="file" id="importData" accept=".json,application/json" hidden></label><button class="button button-quiet danger-text" id="clearUserData">Hapus data lokal</button></div><div class="admin-login-row"><span id="adminStatus">Mode pengunjung · login demo tersedia</span><button class="button button-primary" id="adminLogin">Login admin demo</button></div></div>
     </section>
   </main>
 
   <footer><a class="brand footer-brand" href="#"><span class="brand-mark">K<span>✦</span></span><span>prompt <b>by kenzz</b><small>YOUR CREATIVE PROMPT STUDIO</small></span></a><p>Made for creators, by Kenzz. <span>✦</span></p><span class="footer-note">HTML · CSS · JAVASCRIPT · NO API</span></footer>
 
-  <div class="modal-backdrop hidden" id="loginModal" role="dialog" aria-modal="true" aria-labelledby="loginTitle"><div class="modal panel"><button class="modal-close" data-close="loginModal" aria-label="Tutup">×</button><div class="panel-icon big-icon">♙</div><div class="eyebrow">YOUR KENZZ ACCOUNT</div><h2 id="loginTitle">Login <span class="gradient-text">Studio</span></h2><p class="muted">Daftar atau masuk menggunakan Supabase.</p><form id="loginForm"><label>Email<input id="loginEmail" type="email" required autocomplete="email" placeholder="nama@email.com"></label><label>Password<input id="loginPassword" type="password" required minlength="6" autocomplete="current-password" placeholder="Minimal 6 karakter"></label><label>Nama tampilan<input id="loginName" placeholder="Nama kamu (untuk pendaftaran)"></label><div class="output-actions"><button class="button button-primary" type="submit">Login</button><button class="button button-secondary" type="button" id="signupSubmit">Buat akun</button><button class="button button-quiet" type="button" id="logoutButton">Keluar</button></div></form><p class="fine-print">Akun menggunakan Supabase Auth. Jika konfirmasi email aktif, konfirmasi email sebelum login. Jangan bagikan password.</p></div></div>
+  <div class="modal-backdrop hidden" id="loginModal" role="dialog" aria-modal="true" aria-labelledby="loginTitle"><div class="modal panel"><button class="modal-close" data-close="loginModal" aria-label="Tutup">×</button><div class="panel-icon big-icon">♙</div><div class="eyebrow">YOUR KENZZ ACCOUNT</div><h2 id="loginTitle">Login <span class="gradient-text">Studio</span></h2><p class="muted">Daftar atau masuk untuk memakai AI dan menyimpan riwayat.</p><form id="loginForm"><label>Email<input id="loginEmail" type="email" required autocomplete="email" placeholder="nama@email.com"></label><label>Password<input id="loginPassword" type="password" required minlength="6" autocomplete="current-password" placeholder="Minimal 6 karakter"></label><label>Nama tampilan<input id="loginName" placeholder="Nama kamu (untuk pendaftaran)"></label><div class="output-actions"><button class="button button-primary" type="submit">Login</button><button class="button button-secondary" type="button" id="signupSubmit">Buat akun</button><button class="button button-quiet" type="button" id="logoutButton">Keluar</button></div></form><p class="fine-print">Login ditangani Supabase Auth. Jangan bagikan password. Jika konfirmasi email aktif, konfirmasi email sebelum login.</p></div></div>
 
   <div class="modal-backdrop hidden" id="addPromptModal" role="dialog" aria-modal="true" aria-labelledby="addPromptTitle"><div class="modal panel"><button class="modal-close" data-close="addPromptModal" aria-label="Tutup">×</button><div class="eyebrow">ADD TO YOUR LIBRARY</div><h2 id="addPromptTitle">Tambah <span class="gradient-text">prompt</span></h2><form id="addPromptForm"><label>Judul prompt<input id="customTitle" required placeholder="Contoh: Neon Anime Portrait"></label><label>Kategori<select id="customCategory"><option>Gambar AI</option><option>Anime</option><option>Website</option><option>Coding</option><option>Banner & Desain</option><option>Menulis</option><option>Video</option><option>Bisnis</option></select></label><label>Isi prompt<textarea id="customText" required rows="5" placeholder="Tulis prompt lengkapmu..."></textarea></label><button class="button button-primary full" type="submit">Simpan prompt</button></form></div></div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
